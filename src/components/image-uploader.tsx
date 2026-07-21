@@ -19,7 +19,7 @@ export function SingleImageUploader({
       const url = res?.[0]?.serverData?.url ?? res?.[0]?.ufsUrl ?? res?.[0]?.url;
       if (url) onChange(url);
     },
-    onUploadError: (e) => toast.error(e.message),
+    onUploadError: (e) => { toast.error(e.message); },
   });
 
   return (
@@ -88,7 +88,7 @@ export function MultiImageUploader({
         .filter((u): u is string => !!u);
       if (urls.length) onChange([...value, ...urls]);
     },
-    onUploadError: (e) => toast.error(e.message),
+    onUploadError: (e) => { toast.error(e.message); },
   });
 
   const move = (from: number, to: number) => {
