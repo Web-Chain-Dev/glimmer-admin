@@ -404,6 +404,5 @@ export function ItemForm({ itemId }: { itemId?: string }) {
   );
 }
 
-// re-export for silence unused
+// re-export for consumers
 export type { Item };
-export const _unused = Textarea;
