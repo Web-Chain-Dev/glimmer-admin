@@ -14,7 +14,184 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          is_system: boolean
+          kind: string
+          name_en: string
+          name_ru: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_system?: boolean
+          kind: string
+          name_en: string
+          name_ru: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_system?: boolean
+          kind?: string
+          name_en?: string
+          name_ru?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      item_images: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          sort_order: number
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          sort_order?: number
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          sort_order?: number
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_images_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_recommendations: {
+        Row: {
+          item_id: string
+          recommended_item_id: string
+          sort_order: number
+        }
+        Insert: {
+          item_id: string
+          recommended_item_id: string
+          sort_order?: number
+        }
+        Update: {
+          item_id?: string
+          recommended_item_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_recommendations_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_recommendations_recommended_item_id_fkey"
+            columns: ["recommended_item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_tags: {
+        Row: {
+          category_id: string
+          item_id: string
+        }
+        Insert: {
+          category_id: string
+          item_id: string
+        }
+        Update: {
+          category_id?: string
+          item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_tags_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_tags_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      items: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          main_image_url: string | null
+          material: string | null
+          price: number
+          primary_category_id: string
+          size: string | null
+          size_unit: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          main_image_url?: string | null
+          material?: string | null
+          price?: number
+          primary_category_id: string
+          size?: string | null
+          size_unit?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          main_image_url?: string | null
+          material?: string | null
+          price?: number
+          primary_category_id?: string
+          size?: string | null
+          size_unit?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "items_primary_category_id_fkey"
+            columns: ["primary_category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
