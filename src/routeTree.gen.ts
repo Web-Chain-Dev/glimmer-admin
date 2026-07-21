@@ -13,6 +13,9 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ApiUploadthingRouteImport } from './routes/api/uploadthing'
+import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
+import { Route as AdminItemsNewRouteImport } from './routes/admin.items.new'
+import { Route as AdminItemsIdRouteImport } from './routes/admin.items.$id'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
@@ -34,31 +37,76 @@ const ApiUploadthingRoute = ApiUploadthingRouteImport.update({
   path: '/api/uploadthing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminItemsNewRoute = AdminItemsNewRouteImport.update({
+  id: '/items/new',
+  path: '/items/new',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminItemsIdRoute = AdminItemsIdRouteImport.update({
+  id: '/items/$id',
+  path: '/items/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/admin/categories': typeof AdminCategoriesRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/items/$id': typeof AdminItemsIdRoute
+  '/admin/items/new': typeof AdminItemsNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/items/$id': typeof AdminItemsIdRoute
+  '/admin/items/new': typeof AdminItemsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/admin/categories': typeof AdminCategoriesRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/items/$id': typeof AdminItemsIdRoute
+  '/admin/items/new': typeof AdminItemsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/api/uploadthing' | '/admin/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/admin/categories'
+    | '/api/uploadthing'
+    | '/admin/'
+    | '/admin/items/$id'
+    | '/admin/items/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/uploadthing' | '/admin'
-  id: '__root__' | '/' | '/admin' | '/api/uploadthing' | '/admin/'
+  to:
+    | '/'
+    | '/admin/categories'
+    | '/api/uploadthing'
+    | '/admin'
+    | '/admin/items/$id'
+    | '/admin/items/new'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/admin/categories'
+    | '/api/uploadthing'
+    | '/admin/'
+    | '/admin/items/$id'
+    | '/admin/items/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -97,15 +145,42 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiUploadthingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/items/new': {
+      id: '/admin/items/new'
+      path: '/items/new'
+      fullPath: '/admin/items/new'
+      preLoaderRoute: typeof AdminItemsNewRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/items/$id': {
+      id: '/admin/items/$id'
+      path: '/items/$id'
+      fullPath: '/admin/items/$id'
+      preLoaderRoute: typeof AdminItemsIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminItemsIdRoute: typeof AdminItemsIdRoute
+  AdminItemsNewRoute: typeof AdminItemsNewRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminCategoriesRoute: AdminCategoriesRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminItemsIdRoute: AdminItemsIdRoute,
+  AdminItemsNewRoute: AdminItemsNewRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
