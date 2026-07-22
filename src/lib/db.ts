@@ -26,6 +26,15 @@ export type Item = {
 
 export type ItemImage = { id: string; item_id: string; url: string; sort_order: number };
 
+export type ItemSize = {
+  id: string;
+  item_id: string;
+  size: string | null;
+  size_unit: "ru" | "cm" | "mm" | null;
+  stock: number;
+  sort_order: number;
+};
+
 export async function listCategories() {
   const { data, error } = await supabase
     .from("categories")
@@ -52,7 +61,7 @@ export async function listItemTags() {
 }
 
 export async function getItemFull(id: string) {
-  const [itemRes, imgsRes, tagsRes, recRes] = await Promise.all([
+  const [itemRes, imgsRes, tagsRes, recRes, sizesRes] = await Promise.all([
     supabase.from("items").select("*").eq("id", id).maybeSingle(),
     supabase.from("item_images").select("*").eq("item_id", id).order("sort_order"),
     supabase.from("item_tags").select("category_id").eq("item_id", id),
@@ -61,6 +70,7 @@ export async function getItemFull(id: string) {
       .select("recommended_item_id, sort_order")
       .eq("item_id", id)
       .order("sort_order"),
+    supabase.from("item_sizes").select("*").eq("item_id", id).order("sort_order"),
   ]);
   if (itemRes.error) throw itemRes.error;
   if (!itemRes.data) return null;
@@ -69,5 +79,6 @@ export async function getItemFull(id: string) {
     images: (imgsRes.data ?? []) as ItemImage[],
     tagIds: (tagsRes.data ?? []).map((r) => r.category_id as string),
     recommendedIds: (recRes.data ?? []).map((r) => r.recommended_item_id as string),
+    sizes: (sizesRes.data ?? []) as ItemSize[],
   };
 }
