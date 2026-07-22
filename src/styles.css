@@ -142,3 +142,10 @@
     color: var(--color-foreground);
   }
 }
+
+/* Preserve empty paragraphs from rich-text editor so blank lines render */
+.prose p:empty::before,
+.tiptap p:empty::before,
+.ProseMirror p:empty::before {
+  content: "\00a0";
+}
