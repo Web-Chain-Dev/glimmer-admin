@@ -112,6 +112,44 @@ export type Database = {
           },
         ]
       }
+      item_sizes: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          size: string | null
+          size_unit: string | null
+          sort_order: number
+          stock: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          size?: string | null
+          size_unit?: string | null
+          sort_order?: number
+          stock?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          size?: string | null
+          size_unit?: string | null
+          sort_order?: number
+          stock?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_sizes_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       item_tags: {
         Row: {
           category_id: string
