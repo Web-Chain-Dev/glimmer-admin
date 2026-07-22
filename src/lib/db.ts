@@ -26,6 +26,15 @@ export type Item = {
 
 export type ItemImage = { id: string; item_id: string; url: string; sort_order: number };
 
+export type ItemSize = {
+  id: string;
+  item_id: string;
+  size: string | null;
+  size_unit: "ru" | "cm" | "mm" | null;
+  stock: number;
+  sort_order: number;
+};
+
 export async function listCategories() {
   const { data, error } = await supabase
     .from("categories")
