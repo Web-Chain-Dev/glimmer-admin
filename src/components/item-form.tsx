@@ -20,7 +20,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { SingleImageUploader, MultiImageUploader } from "@/components/image-uploader";
 import { useI18n, catName } from "@/lib/i18n";
-import { X, Loader2, Trash2 } from "lucide-react";
+import { X, Loader2, Trash2, Plus } from "lucide-react";
+
+type SizeRow = {
+  size: string;
+  size_unit: "" | "ru" | "cm" | "mm";
+  stock: string;
+};
 
 type FormState = {
   title: string;
@@ -28,12 +34,12 @@ type FormState = {
   material: string;
   description: string;
   primary_category_id: string;
-  size: string;
-  size_unit: "" | "ru" | "cm" | "mm";
   main_image_url: string | null;
   tagIds: string[];
   detailImages: string[];
   recommendedIds: string[];
+  sizes: SizeRow[];
+  stock: string; // used when the category has no size (earrings)
 };
 
 const empty: FormState = {
@@ -42,12 +48,12 @@ const empty: FormState = {
   material: "",
   description: "",
   primary_category_id: "",
-  size: "",
-  size_unit: "",
   main_image_url: null,
   tagIds: [],
   detailImages: [],
   recommendedIds: [],
+  sizes: [],
+  stock: "0",
 };
 
 export function ItemForm({ itemId }: { itemId?: string }) {
@@ -68,19 +74,27 @@ export function ItemForm({ itemId }: { itemId?: string }) {
 
   useEffect(() => {
     if (!itemId || !existing.data) return;
-    const { item, images, tagIds, recommendedIds } = existing.data;
+    const { item, images, tagIds, recommendedIds, sizes } = existing.data;
+    // Split existing size rows: those with a `size` value are size rows;
+    // one row with null size represents stock-only (for earrings).
+    const sized = sizes.filter((s) => s.size);
+    const stockOnly = sizes.find((s) => !s.size);
     setF({
       title: item.title,
       price: String(item.price),
       material: item.material ?? "",
       description: item.description ?? "",
       primary_category_id: item.primary_category_id,
-      size: item.size ?? "",
-      size_unit: (item.size_unit ?? "") as FormState["size_unit"],
       main_image_url: item.main_image_url,
       tagIds,
       detailImages: images.map((i) => i.url),
       recommendedIds,
+      sizes: sized.map((s) => ({
+        size: s.size ?? "",
+        size_unit: (s.size_unit ?? "") as SizeRow["size_unit"],
+        stock: String(s.stock),
+      })),
+      stock: String(stockOnly?.stock ?? 0),
     });
     setLoaded(true);
   }, [itemId, existing.data]);
@@ -95,6 +109,7 @@ export function ItemForm({ itemId }: { itemId?: string }) {
   const isEarring = primaryCat?.slug === "earrings";
   const isRing =
     primaryCat?.slug === "rings" || primaryCat?.slug === "phalange-rings";
+  const defaultUnit: SizeRow["size_unit"] = isRing ? "ru" : "cm";
 
   const save = useMutation({
     mutationFn: async () => {
@@ -107,8 +122,11 @@ export function ItemForm({ itemId }: { itemId?: string }) {
         material: f.material || null,
         description: f.description || null,
         primary_category_id: f.primary_category_id,
-        size: isEarring ? null : f.size || null,
-        size_unit: isEarring ? null : f.size_unit || (isRing ? "ru" : null),
+        // legacy single-size columns: keep first size for backwards compat
+        size: isEarring ? null : f.sizes[0]?.size || null,
+        size_unit: isEarring
+          ? null
+          : (f.sizes[0]?.size_unit || null),
         main_image_url: f.main_image_url,
       };
 
@@ -153,6 +171,40 @@ export function ItemForm({ itemId }: { itemId?: string }) {
         if (error) throw error;
       }
 
+      // sizes / stock: replace all
+      await supabase.from("item_sizes").delete().eq("item_id", id);
+      const sizeRows: Array<{
+        item_id: string;
+        size: string | null;
+        size_unit: string | null;
+        stock: number;
+        sort_order: number;
+      }> = [];
+      if (isEarring) {
+        sizeRows.push({
+          item_id: id!,
+          size: null,
+          size_unit: null,
+          stock: Math.max(0, Number(f.stock) || 0),
+          sort_order: 0,
+        });
+      } else {
+        f.sizes.forEach((s, i) => {
+          if (!s.size.trim()) return;
+          sizeRows.push({
+            item_id: id!,
+            size: s.size.trim(),
+            size_unit: s.size_unit || defaultUnit,
+            stock: Math.max(0, Number(s.stock) || 0),
+            sort_order: i,
+          });
+        });
+      }
+      if (sizeRows.length) {
+        const { error } = await supabase.from("item_sizes").insert(sizeRows);
+        if (error) throw error;
+      }
+
       return id!;
     },
     onSuccess: (id) => {
@@ -185,6 +237,19 @@ export function ItemForm({ itemId }: { itemId?: string }) {
   const recItems = f.recommendedIds
     .map((id) => otherItems.find((i) => i.id === id))
     .filter((i): i is Item => !!i);
+
+  const addSize = () =>
+    setF({
+      ...f,
+      sizes: [...f.sizes, { size: "", size_unit: defaultUnit, stock: "0" }],
+    });
+  const updateSize = (idx: number, patch: Partial<SizeRow>) =>
+    setF({
+      ...f,
+      sizes: f.sizes.map((s, i) => (i === idx ? { ...s, ...patch } : s)),
+    });
+  const removeSize = (idx: number) =>
+    setF({ ...f, sizes: f.sizes.filter((_, i) => i !== idx) });
 
   return (
     <div className="space-y-6">
@@ -336,36 +401,6 @@ export function ItemForm({ itemId }: { itemId?: string }) {
                   </SelectContent>
                 </Select>
               </div>
-
-              {!isEarring && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-2">
-                    <Label>{t("field.size")}</Label>
-                    <Input
-                      value={f.size}
-                      onChange={(e) => setF({ ...f, size: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{t("field.sizeUnit")}</Label>
-                    <Select
-                      value={f.size_unit || (isRing ? "ru" : "")}
-                      onValueChange={(v) =>
-                        setF({ ...f, size_unit: v as FormState["size_unit"] })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("select.placeholder")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ru">{t("unit.ru")}</SelectItem>
-                        <SelectItem value="cm">{t("unit.cm")}</SelectItem>
-                        <SelectItem value="mm">{t("unit.mm")}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -400,6 +435,100 @@ export function ItemForm({ itemId }: { itemId?: string }) {
           </Card>
         </div>
       </div>
+
+      {/* Sizes / stock — full width at the bottom */}
+      <Card>
+        <CardContent className="space-y-4 pt-6">
+          <div className="flex items-center justify-between">
+            <Label className="text-base">
+              {isEarring ? t("field.stockOnly") : t("field.sizes")}
+            </Label>
+            {!isEarring && (
+              <Button type="button" variant="outline" size="sm" onClick={addSize}>
+                <Plus className="mr-1 h-4 w-4" />
+                {t("sizes.add")}
+              </Button>
+            )}
+          </div>
+
+          {isEarring ? (
+            <div className="max-w-xs space-y-2">
+              <Label>{t("field.stock")}</Label>
+              <Input
+                type="number"
+                min="0"
+                step="1"
+                value={f.stock}
+                onChange={(e) => setF({ ...f, stock: e.target.value })}
+              />
+            </div>
+          ) : f.sizes.length === 0 ? (
+            <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+              {t("sizes.add")}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {f.sizes.map((s, i) => (
+                <div
+                  key={i}
+                  className="grid grid-cols-[1fr_140px_140px_auto] items-end gap-3 rounded-md border p-3"
+                >
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      {t("field.size")}
+                    </Label>
+                    <Input
+                      value={s.size}
+                      onChange={(e) => updateSize(i, { size: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      {t("field.sizeUnit")}
+                    </Label>
+                    <Select
+                      value={s.size_unit || defaultUnit}
+                      onValueChange={(v) =>
+                        updateSize(i, { size_unit: v as SizeRow["size_unit"] })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ru">{t("unit.ru")}</SelectItem>
+                        <SelectItem value="cm">{t("unit.cm")}</SelectItem>
+                        <SelectItem value="mm">{t("unit.mm")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      {t("field.stock")}
+                    </Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={s.stock}
+                      onChange={(e) => updateSize(i, { stock: e.target.value })}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeSize(i)}
+                    aria-label={t("sizes.remove")}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
