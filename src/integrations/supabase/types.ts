@@ -16,32 +16,38 @@ export type Database = {
     Tables: {
       categories: {
         Row: {
+          catalog_order: number
           created_at: string
           id: string
           is_system: boolean
           kind: string
           name_en: string
           name_ru: string
+          show_in_catalog: boolean
           slug: string
           sort_order: number
         }
         Insert: {
+          catalog_order?: number
           created_at?: string
           id?: string
           is_system?: boolean
           kind: string
           name_en: string
           name_ru: string
+          show_in_catalog?: boolean
           slug: string
           sort_order?: number
         }
         Update: {
+          catalog_order?: number
           created_at?: string
           id?: string
           is_system?: boolean
           kind?: string
           name_en?: string
           name_ru?: string
+          show_in_catalog?: boolean
           slug?: string
           sort_order?: number
         }
@@ -191,6 +197,8 @@ export type Database = {
           primary_category_id: string
           size: string | null
           size_unit: string | null
+          slug: string
+          sort_order: number
           title: string
           updated_at: string
         }
@@ -204,6 +212,8 @@ export type Database = {
           primary_category_id: string
           size?: string | null
           size_unit?: string | null
+          slug: string
+          sort_order?: number
           title: string
           updated_at?: string
         }
@@ -217,6 +227,8 @@ export type Database = {
           primary_category_id?: string
           size?: string | null
           size_unit?: string | null
+          slug?: string
+          sort_order?: number
           title?: string
           updated_at?: string
         }
@@ -235,7 +247,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      slugify: { Args: { input: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
