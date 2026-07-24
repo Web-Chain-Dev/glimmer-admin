@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { listCategories, listItems, getItemFull, type Item } from "@/lib/db";
+import { listCategories, listItems, getItemFull, slugify, type Item } from "@/lib/db";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ type SizeRow = {
 
 type FormState = {
   title: string;
+  slug: string;
   price: string;
   material: string;
   description: string;
@@ -44,6 +45,7 @@ type FormState = {
 
 const empty: FormState = {
   title: "",
+  slug: "",
   price: "0",
   material: "",
   description: "",
@@ -55,6 +57,7 @@ const empty: FormState = {
   sizes: [],
   stock: "0",
 };
+
 
 export function ItemForm({ itemId }: { itemId?: string }) {
   const { t, lang } = useI18n();
@@ -81,6 +84,7 @@ export function ItemForm({ itemId }: { itemId?: string }) {
     const stockOnly = sizes.find((s) => !s.size);
     setF({
       title: item.title,
+      slug: item.slug,
       price: String(item.price),
       material: item.material ?? "",
       description: item.description ?? "",
@@ -98,6 +102,7 @@ export function ItemForm({ itemId }: { itemId?: string }) {
     });
     setLoaded(true);
   }, [itemId, existing.data]);
+
 
   const primary = useMemo(
     () => (cats.data ?? []).filter((c) => c.kind === "primary"),
@@ -118,17 +123,16 @@ export function ItemForm({ itemId }: { itemId?: string }) {
 
       const payload = {
         title: f.title.trim(),
+        slug: (f.slug.trim() || slugify(f.title)) || slugify(f.title),
         price: Number(f.price) || 0,
         material: f.material || null,
         description: f.description || null,
         primary_category_id: f.primary_category_id,
-        // legacy single-size columns: keep first size for backwards compat
         size: isEarring ? null : f.sizes[0]?.size || null,
-        size_unit: isEarring
-          ? null
-          : (f.sizes[0]?.size_unit || null),
+        size_unit: isEarring ? null : (f.sizes[0]?.size_unit || null),
         main_image_url: f.main_image_url,
       };
+
 
       let id = itemId;
       if (id) {
@@ -283,8 +287,28 @@ export function ItemForm({ itemId }: { itemId?: string }) {
             <CardContent className="space-y-4 pt-6">
               <div className="space-y-2">
                 <Label>{t("field.title")}</Label>
-                <Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />
+                <Input
+                  value={f.title}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    setF((prev) => ({
+                      ...prev,
+                      title: next,
+                      slug: prev.slug === "" || prev.slug === slugify(prev.title) ? slugify(next) : prev.slug,
+                    }));
+                  }}
+                />
               </div>
+              <div className="space-y-2">
+                <Label>{t("field.slug")}</Label>
+                <Input
+                  value={f.slug}
+                  placeholder={slugify(f.title)}
+                  onChange={(e) => setF({ ...f, slug: e.target.value })}
+                />
+                <div className="text-xs text-muted-foreground">/collections/{f.slug || slugify(f.title) || "…"}</div>
+              </div>
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>{t("field.price")} (₽)</Label>
