@@ -1,47 +1,77 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { listCategories, listItems, listItemTags } from "@/lib/db";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { listItems, type Item } from "@/lib/db";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil } from "lucide-react";
-import { useI18n, catName } from "@/lib/i18n";
-import { useMemo, useState } from "react";
-import { Input } from "@/components/ui/input";
+import { Plus, Pencil, GripVertical } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
+import { useEffect, useState } from "react";
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/")({
-  component: AdminItemsList,
+  component: AdminItemsGrid,
 });
 
-function AdminItemsList() {
+function AdminItemsGrid() {
   const { t, lang } = useI18n();
-  const [q, setQ] = useState("");
-  const cats = useQuery({ queryKey: ["categories"], queryFn: listCategories });
+  const qc = useQueryClient();
   const items = useQuery({ queryKey: ["items"], queryFn: listItems });
-  const tags = useQuery({ queryKey: ["item_tags"], queryFn: listItemTags });
 
-  const catMap = useMemo(() => {
-    const m = new Map<string, { name_ru: string; name_en: string; kind: string }>();
-    for (const c of cats.data ?? []) m.set(c.id, c);
-    return m;
-  }, [cats.data]);
+  const [order, setOrder] = useState<Item[]>([]);
+  useEffect(() => {
+    if (items.data) setOrder(items.data);
+  }, [items.data]);
 
-  const tagsByItem = useMemo(() => {
-    const m = new Map<string, string[]>();
-    for (const t of tags.data ?? []) {
-      if (!m.has(t.item_id)) m.set(t.item_id, []);
-      m.get(t.item_id)!.push(t.category_id);
-    }
-    return m;
-  }, [tags.data]);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
-  const filtered = (items.data ?? []).filter((it) =>
-    q ? it.title.toLowerCase().includes(q.toLowerCase()) : true,
-  );
+  const saveOrder = useMutation({
+    mutationFn: async (next: Item[]) => {
+      const updates = next.map((it, i) =>
+        supabase.from("items").update({ sort_order: (i + 1) * 10 }).eq("id", it.id),
+      );
+      const results = await Promise.all(updates);
+      const err = results.find((r) => r.error);
+      if (err?.error) throw err.error;
+    },
+    onSuccess: () => {
+      toast.success(t("admin.saved"));
+      qc.invalidateQueries({ queryKey: ["items"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const onDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIdx = order.findIndex((i) => i.id === active.id);
+    const newIdx = order.findIndex((i) => i.id === over.id);
+    const next = arrayMove(order, oldIdx, newIdx);
+    setOrder(next);
+    saveOrder.mutate(next);
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">{t("admin.items")}</h1>
+        <div>
+          <h1 className="text-2xl font-semibold">{t("admin.items")}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t("admin.orderHint")}</p>
+        </div>
         <Button asChild>
           <Link to="/admin/items/new">
             <Plus className="mr-2 h-4 w-4" />
@@ -50,91 +80,73 @@ function AdminItemsList() {
         </Button>
       </div>
 
-      <Input
-        placeholder={t("search.placeholder")}
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        className="max-w-sm"
-      />
+      {items.isLoading ? (
+        <div className="text-muted-foreground">{t("loading")}</div>
+      ) : order.length === 0 ? (
+        <div className="rounded-lg border border-dashed py-16 text-center text-muted-foreground">
+          {t("catalog.empty")}
+        </div>
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+          <SortableContext items={order.map((i) => i.id)} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {order.map((it) => (
+                <SortableCard key={it.id} item={it} lang={lang} />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
+    </div>
+  );
+}
 
-      <div className="overflow-hidden rounded-lg border bg-card">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50 text-left text-muted-foreground">
-            <tr>
-              <th className="w-16 px-4 py-2"></th>
-              <th className="px-4 py-2">{t("field.title")}</th>
-              <th className="px-4 py-2">{t("field.category")}</th>
-              <th className="px-4 py-2">{t("field.tags")}</th>
-              <th className="px-4 py-2 text-right">{t("field.price")}</th>
-              <th className="w-14 px-4 py-2"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.isLoading && (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                  {t("loading")}
-                </td>
-              </tr>
-            )}
-            {!items.isLoading && filtered.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                  {t("catalog.empty")}
-                </td>
-              </tr>
-            )}
-            {filtered.map((it) => {
-              const cat = catMap.get(it.primary_category_id);
-              const itemTagIds = tagsByItem.get(it.id) ?? [];
-              return (
-                <tr key={it.id} className="border-t hover:bg-muted/30">
-                  <td className="px-4 py-2">
-                    {it.main_image_url ? (
-                      <img
-                        src={it.main_image_url}
-                        alt=""
-                        className="h-10 w-10 rounded object-cover"
-                      />
-                    ) : (
-                      <div className="h-10 w-10 rounded bg-muted" />
-                    )}
-                  </td>
-                  <td className="px-4 py-2 font-medium">{it.title}</td>
-                  <td className="px-4 py-2 text-muted-foreground">
-                    {cat ? catName(cat, lang) : "—"}
-                  </td>
-                  <td className="px-4 py-2">
-                    <div className="flex flex-wrap gap-1">
-                      {itemTagIds.map((tid) => {
-                        const c = catMap.get(tid);
-                        return c ? (
-                          <Badge key={tid} variant="secondary" className="text-xs">
-                            {catName(c, lang)}
-                          </Badge>
-                        ) : null;
-                      })}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 text-right tabular-nums">
-                    {Number(it.price).toLocaleString(lang === "ru" ? "ru-RU" : "en-US")} ₽
-                  </td>
-                  <td className="px-4 py-2 text-right">
-                    <Button asChild size="icon" variant="ghost">
-                      <Link
-                        to="/admin/items/$id"
-                        params={{ id: it.id }}
-                        aria-label="edit"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+function SortableCard({ item, lang }: { item: Item; lang: "ru" | "en" }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: item.id,
+  });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="group relative overflow-hidden rounded-lg border bg-card"
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="absolute left-2 top-2 z-10 rounded-md bg-background/90 p-1.5 shadow-sm opacity-0 transition group-hover:opacity-100 cursor-grab active:cursor-grabbing"
+        aria-label="drag"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <div className="aspect-square overflow-hidden bg-muted">
+        {item.main_image_url ? (
+          <img src={item.main_image_url} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+            no image
+          </div>
+        )}
+      </div>
+      <div className="flex items-start justify-between gap-2 p-3">
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-medium">{item.title}</div>
+          <div className="text-xs tabular-nums text-muted-foreground">
+            {Number(item.price).toLocaleString(lang === "ru" ? "ru-RU" : "en-US")} ₽
+          </div>
+        </div>
+        <Button asChild size="icon" variant="ghost" className="shrink-0">
+          <Link to="/admin/items/$id" params={{ id: item.id }} aria-label="edit">
+            <Pencil className="h-4 w-4" />
+          </Link>
+        </Button>
       </div>
     </div>
   );

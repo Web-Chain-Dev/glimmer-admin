@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Package, Tags, ArrowLeft, Languages } from "lucide-react";
+import { Package, Tags, Layout, ArrowLeft, Languages } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const nav = [
     { to: "/admin", label: t("admin.items"), icon: Package, exact: true },
     { to: "/admin/categories", label: t("admin.categories"), icon: Tags },
+    { to: "/admin/catalog", label: t("admin.catalogTabs"), icon: Layout },
   ];
+
 
   return (
     <div className="min-h-screen bg-background">
