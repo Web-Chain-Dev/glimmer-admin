@@ -170,7 +170,7 @@ function SortableRow({
   onRemove,
 }: {
   c: Category;
-  lang: "ru" | "en";
+  lang: Lang;
   onRemove: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({

@@ -101,7 +101,7 @@ function AdminItemsGrid() {
   );
 }
 
-function SortableCard({ item, lang }: { item: Item; lang: "ru" | "en" }) {
+function SortableCard({ item, lang }: { item: Item; lang: Lang }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
   });
