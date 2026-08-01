@@ -53,6 +53,20 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <Languages className="mr-2 h-4 w-4" />
             {t("lang.switch")}
           </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+            onClick={async () => {
+              await queryClient.cancelQueries();
+              queryClient.clear();
+              await supabase.auth.signOut();
+              navigate({ to: "/auth", replace: true });
+            }}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            {t("admin.signOut")}
+          </Button>
           <Link
             to="/"
             className="flex items-center gap-2 rounded-md px-3 py-2 text-xs text-muted-foreground hover:bg-sidebar-accent/60"
