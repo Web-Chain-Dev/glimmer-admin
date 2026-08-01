@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listCategories, type Category } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
-import { useI18n, catName } from "@/lib/i18n";
+import { useI18n, catName, type Lang } from "@/lib/i18n";
 import { useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { GripVertical } from "lucide-react";

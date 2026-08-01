@@ -4,7 +4,7 @@ import { listItems, type Item } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, GripVertical } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, formatPrice, type Lang } from "@/lib/i18n";
 import { useEffect, useState } from "react";
 import {
   DndContext,
@@ -139,7 +139,7 @@ function SortableCard({ item, lang }: { item: Item; lang: Lang }) {
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-medium">{item.title}</div>
           <div className="text-xs tabular-nums text-muted-foreground">
-            {Number(item.price).toLocaleString(lang === "ru" ? "ru-RU" : "en-US")} ₽
+            {formatPrice(item.price, lang)}
           </div>
         </div>
         <Button asChild size="icon" variant="ghost" className="shrink-0">
