@@ -1,13 +1,17 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Package, Tags, Layout, ArrowLeft, Languages } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { Package, Tags, Layout, ArrowLeft, Languages, LogOut } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useI18n, nextLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const { t, lang, setLang } = useI18n();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const nav = [
     { to: "/admin", label: t("admin.items"), icon: Package, exact: true },
@@ -48,10 +52,24 @@ export function AdminShell({ children }: { children: ReactNode }) {
             variant="outline"
             size="sm"
             className="w-full justify-start"
-            onClick={() => setLang(lang === "ru" ? "en" : "ru")}
+            onClick={() => setLang(nextLang(lang))}
           >
             <Languages className="mr-2 h-4 w-4" />
             {t("lang.switch")}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+            onClick={async () => {
+              await queryClient.cancelQueries();
+              queryClient.clear();
+              await supabase.auth.signOut();
+              navigate({ to: "/auth", replace: true });
+            }}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            {t("admin.signOut")}
           </Button>
           <Link
             to="/"

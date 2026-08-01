@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { listCategories, listItems, listItemTags, type Category, type Item } from "@/lib/db";
 import { PublicShell } from "@/components/public-shell";
-import { useI18n, catName } from "@/lib/i18n";
+import { useI18n, catName, formatPrice } from "@/lib/i18n";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -62,7 +62,7 @@ function CollectionsPage() {
       <PublicShell variant="light">
         <section className="pt-4 pb-10 text-center md:pt-10 md:pb-16">
           <h1 className="text-5xl font-bold tracking-tight md:text-7xl">
-            {lang === "ru" ? "Найдите свою вещь" : "Find Your Piece"}
+            {t("catalog.heading")}
           </h1>
         </section>
 
@@ -76,7 +76,7 @@ function CollectionsPage() {
                 : "text-black/60 hover:text-black",
             )}
           >
-            {lang === "ru" ? "Все" : "All"}
+            {t("catalog.all")}
           </button>
           {tabCats.map((c) => (
             <button
@@ -121,7 +121,7 @@ function CollectionsPage() {
                 <div className="pt-3">
                   <div className="text-sm font-medium">{it.title}</div>
                   <div className="mt-0.5 text-sm text-black/70 tabular-nums">
-                    {Number(it.price).toLocaleString(lang === "ru" ? "ru-RU" : "en-US")} ₽
+                    {formatPrice(it.price, lang)}
                   </div>
                 </div>
               </Link>

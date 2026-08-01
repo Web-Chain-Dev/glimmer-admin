@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getItemBySlug, listItems } from "@/lib/db";
 import { PublicShell } from "@/components/public-shell";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, formatPrice } from "@/lib/i18n";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
@@ -108,7 +108,7 @@ function ItemPage() {
           <div className="space-y-6">
             <h1 className="text-3xl font-bold md:text-4xl">{item.title}</h1>
             <div className="text-lg tabular-nums">
-              {Number(item.price).toLocaleString(lang === "ru" ? "ru-RU" : "en-US")} ₽
+              {formatPrice(item.price, lang)}
             </div>
 
             <div className="h-px w-full bg-black/10" />
@@ -150,7 +150,7 @@ function ItemPage() {
         {recs.length > 0 && (
           <section className="mt-24">
             <h2 className="mb-6 text-2xl font-bold">
-              {lang === "ru" ? "Вам также может понравиться" : "You may also like"}
+              {t("catalog.alsoLike")}
             </h2>
             <div className="grid grid-cols-2 gap-x-2 gap-y-8 sm:grid-cols-4 md:gap-x-4">
               {recs.map((r) => (
@@ -172,7 +172,7 @@ function ItemPage() {
                   <div className="pt-3">
                     <div className="text-sm font-medium">{r.title}</div>
                     <div className="mt-0.5 text-sm text-black/70 tabular-nums">
-                      {Number(r.price).toLocaleString(lang === "ru" ? "ru-RU" : "en-US")} ₽
+                      {formatPrice(r.price, lang)}
                     </div>
                   </div>
                 </Link>

@@ -21,7 +21,7 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   return (
     <PublicShell>
       {/* Landing placeholder — drop your prepared sections into this file later.
@@ -32,9 +32,7 @@ function LandingPage() {
           {t("app.title")}
         </h1>
         <p className="mt-6 max-w-xl text-lg text-muted-foreground">
-          {lang === "ru"
-            ? "Скоро здесь появится ваш лендинг. Каталог уже доступен."
-            : "Landing page coming soon. The catalog is already live."}
+          {t("landing.soon")}
         </p>
         <Link
           to="/collections"

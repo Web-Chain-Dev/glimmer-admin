@@ -311,7 +311,7 @@ export function ItemForm({ itemId }: { itemId?: string }) {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>{t("field.price")} (₽)</Label>
+                  <Label>{t("field.price")} (USD)</Label>
                   <Input
                     type="number"
                     step="0.01"

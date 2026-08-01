@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listCategories, type Category } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
-import { useI18n, catName } from "@/lib/i18n";
+import { useI18n, catName, type Lang } from "@/lib/i18n";
 import { useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { GripVertical } from "lucide-react";
@@ -129,7 +129,7 @@ function CatalogTabsPage() {
 
         <div>
           <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-muted-foreground">
-            {lang === "ru" ? "Доступные" : "Available"}
+            {t("admin.available")}
           </h2>
           <ul className="divide-y rounded-md border bg-card">
             {available.map((c) => (
@@ -170,7 +170,7 @@ function SortableRow({
   onRemove,
 }: {
   c: Category;
-  lang: "ru" | "en";
+  lang: Lang;
   onRemove: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
