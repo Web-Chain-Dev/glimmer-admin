@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Package, Tags, Layout, ArrowLeft, Languages } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, nextLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -48,7 +48,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             variant="outline"
             size="sm"
             className="w-full justify-start"
-            onClick={() => setLang(lang === "ru" ? "en" : "ru")}
+            onClick={() => setLang(nextLang(lang))}
           >
             <Languages className="mr-2 h-4 w-4" />
             {t("lang.switch")}

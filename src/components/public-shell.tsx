@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Languages, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, nextLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export function PublicShell({
@@ -31,7 +31,7 @@ export function PublicShell({
           </Link>
           <nav className="flex items-center gap-1">
             <NavLink to="/" active={pathname === "/"} light={light}>
-              {lang === "ru" ? "Главная" : "Home"}
+              {t("nav.home")}
             </NavLink>
             <NavLink
               to="/collections"
@@ -43,7 +43,7 @@ export function PublicShell({
             <NavLink to="/admin" active={pathname.startsWith("/admin")} light={light}>
               {t("nav.admin")}
             </NavLink>
-            <Button variant="ghost" size="sm" onClick={() => setLang(lang === "ru" ? "en" : "ru")}>
+            <Button variant="ghost" size="sm" onClick={() => setLang(nextLang(lang))}>
               <Languages className="mr-1.5 h-4 w-4" />
               {t("lang.switch")}
             </Button>

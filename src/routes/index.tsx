@@ -32,9 +32,7 @@ function LandingPage() {
           {t("app.title")}
         </h1>
         <p className="mt-6 max-w-xl text-lg text-muted-foreground">
-          {lang === "ru"
-            ? "Скоро здесь появится ваш лендинг. Каталог уже доступен."
-            : "Landing page coming soon. The catalog is already live."}
+          {t("landing.soon")}
         </p>
         <Link
           to="/collections"

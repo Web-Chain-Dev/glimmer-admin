@@ -129,7 +129,7 @@ function CatalogTabsPage() {
 
         <div>
           <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-muted-foreground">
-            {lang === "ru" ? "Доступные" : "Available"}
+            {t("admin.available")}
           </h2>
           <ul className="divide-y rounded-md border bg-card">
             {available.map((c) => (
