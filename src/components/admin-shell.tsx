@@ -1,6 +1,8 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Package, Tags, Layout, ArrowLeft, Languages } from "lucide-react";
+import { Package, Tags, Layout, ArrowLeft, Languages, LogOut } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useI18n, nextLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -8,6 +10,8 @@ import { Button } from "@/components/ui/button";
 export function AdminShell({ children }: { children: ReactNode }) {
   const { t, lang, setLang } = useI18n();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const nav = [
     { to: "/admin", label: t("admin.items"), icon: Package, exact: true },
