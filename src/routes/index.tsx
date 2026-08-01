@@ -21,7 +21,7 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   return (
     <PublicShell>
       {/* Landing placeholder — drop your prepared sections into this file later.
