@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CollectionsIndexRouteImport } from './routes/collections.index'
@@ -20,6 +21,11 @@ import { Route as AdminCatalogRouteImport } from './routes/admin.catalog'
 import { Route as AdminItemsNewRouteImport } from './routes/admin.items.new'
 import { Route as AdminItemsIdRouteImport } from './routes/admin.items.$id'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -74,6 +80,7 @@ const AdminItemsIdRoute = AdminItemsIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/auth': typeof AuthRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/auth': typeof AuthRoute
   '/admin/catalog': typeof AdminCatalogRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/api/uploadthing': typeof ApiUploadthingRoute
@@ -112,6 +121,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/auth'
     | '/admin/catalog'
     | '/admin/categories'
     | '/api/uploadthing'
@@ -123,6 +133,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/admin/catalog'
     | '/admin/categories'
     | '/api/uploadthing'
@@ -135,6 +146,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/auth'
     | '/admin/catalog'
     | '/admin/categories'
     | '/api/uploadthing'
@@ -148,6 +160,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  AuthRoute: typeof AuthRoute
   ApiUploadthingRoute: typeof ApiUploadthingRoute
   CollectionsSlugRoute: typeof CollectionsSlugRoute
   CollectionsIndexRoute: typeof CollectionsIndexRoute
@@ -155,6 +168,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -249,6 +269,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  AuthRoute: AuthRoute,
   ApiUploadthingRoute: ApiUploadthingRoute,
   CollectionsSlugRoute: CollectionsSlugRoute,
   CollectionsIndexRoute: CollectionsIndexRoute,
