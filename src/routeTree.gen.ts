@@ -18,7 +18,6 @@ import { Route as CollectionsSlugRouteImport } from './routes/collections.$slug'
 import { Route as ApiUploadthingRouteImport } from './routes/api/uploadthing'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminCatalogRouteImport } from './routes/admin.catalog'
-import { Route as ApiPublicTmpadminRouteImport } from './routes/api/public/tmpadmin'
 import { Route as AdminItemsNewRouteImport } from './routes/admin.items.new'
 import { Route as AdminItemsIdRouteImport } from './routes/admin.items.$id'
 
@@ -67,11 +66,6 @@ const AdminCatalogRoute = AdminCatalogRouteImport.update({
   path: '/catalog',
   getParentRoute: () => AdminRoute,
 } as any)
-const ApiPublicTmpadminRoute = ApiPublicTmpadminRouteImport.update({
-  id: '/api/public/tmpadmin',
-  path: '/api/public/tmpadmin',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminItemsNewRoute = AdminItemsNewRouteImport.update({
   id: '/items/new',
   path: '/items/new',
@@ -95,7 +89,6 @@ export interface FileRoutesByFullPath {
   '/collections/': typeof CollectionsIndexRoute
   '/admin/items/$id': typeof AdminItemsIdRoute
   '/admin/items/new': typeof AdminItemsNewRoute
-  '/api/public/tmpadmin': typeof ApiPublicTmpadminRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -108,7 +101,6 @@ export interface FileRoutesByTo {
   '/collections': typeof CollectionsIndexRoute
   '/admin/items/$id': typeof AdminItemsIdRoute
   '/admin/items/new': typeof AdminItemsNewRoute
-  '/api/public/tmpadmin': typeof ApiPublicTmpadminRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -123,7 +115,6 @@ export interface FileRoutesById {
   '/collections/': typeof CollectionsIndexRoute
   '/admin/items/$id': typeof AdminItemsIdRoute
   '/admin/items/new': typeof AdminItemsNewRoute
-  '/api/public/tmpadmin': typeof ApiPublicTmpadminRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -139,7 +130,6 @@ export interface FileRouteTypes {
     | '/collections/'
     | '/admin/items/$id'
     | '/admin/items/new'
-    | '/api/public/tmpadmin'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -152,7 +142,6 @@ export interface FileRouteTypes {
     | '/collections'
     | '/admin/items/$id'
     | '/admin/items/new'
-    | '/api/public/tmpadmin'
   id:
     | '__root__'
     | '/'
@@ -166,7 +155,6 @@ export interface FileRouteTypes {
     | '/collections/'
     | '/admin/items/$id'
     | '/admin/items/new'
-    | '/api/public/tmpadmin'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -176,7 +164,6 @@ export interface RootRouteChildren {
   ApiUploadthingRoute: typeof ApiUploadthingRoute
   CollectionsSlugRoute: typeof CollectionsSlugRoute
   CollectionsIndexRoute: typeof CollectionsIndexRoute
-  ApiPublicTmpadminRoute: typeof ApiPublicTmpadminRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -244,13 +231,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCatalogRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/api/public/tmpadmin': {
-      id: '/api/public/tmpadmin'
-      path: '/api/public/tmpadmin'
-      fullPath: '/api/public/tmpadmin'
-      preLoaderRoute: typeof ApiPublicTmpadminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/items/new': {
       id: '/admin/items/new'
       path: '/items/new'
@@ -293,7 +273,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUploadthingRoute: ApiUploadthingRoute,
   CollectionsSlugRoute: CollectionsSlugRoute,
   CollectionsIndexRoute: CollectionsIndexRoute,
-  ApiPublicTmpadminRoute: ApiPublicTmpadminRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
