@@ -23,7 +23,6 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"in" | "up">("in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -32,19 +31,9 @@ function AuthPage() {
     e.preventDefault();
     setBusy(true);
     try {
-      if (mode === "in") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        navigate({ to: "/admin", replace: true });
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: `${window.location.origin}/admin` },
-        });
-        if (error) throw error;
-        toast.success(t("auth.checkEmail"));
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      navigate({ to: "/admin", replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err));
     } finally {
@@ -76,23 +65,15 @@ function AuthPage() {
               <Input
                 id="password"
                 type="password"
-                autoComplete={mode === "in" ? "current-password" : "new-password"}
+                autoComplete="current-password"
                 required
-                minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
             <Button type="submit" className="w-full" disabled={busy}>
-              {busy ? t("auth.signingIn") : mode === "in" ? t("auth.signIn") : t("auth.signUp")}
+              {busy ? t("auth.signingIn") : t("auth.signIn")}
             </Button>
-            <button
-              type="button"
-              className="w-full text-center text-xs text-muted-foreground hover:text-foreground"
-              onClick={() => setMode(mode === "in" ? "up" : "in")}
-            >
-              {mode === "in" ? t("auth.toggleToSignUp") : t("auth.toggleToSignIn")}
-            </button>
           </form>
         </CardContent>
       </Card>
